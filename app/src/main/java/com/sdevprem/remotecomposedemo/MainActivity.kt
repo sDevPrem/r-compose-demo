@@ -21,6 +21,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -37,7 +38,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.sdevprem.remotecomposedemo.ui.theme.RemoteComposeDemoTheme
 import io.ktor.client.HttpClient
@@ -62,6 +65,8 @@ data class RemoteCatalogueItem(
 
 private val catalogueItems = listOf(
     RemoteCatalogueItem(endpoint = "/festive", screenName = "Festive"),
+    RemoteCatalogueItem(endpoint = "/clock", screenName = "Clock"),
+    RemoteCatalogueItem(endpoint = "/counter", screenName = "Counter"),
 )
 
 class MainActivity : ComponentActivity() {
@@ -138,6 +143,8 @@ private fun RemoteDetailScreen(
     modifier: Modifier = Modifier,
     onBack: () -> Unit,
 ) {
+    var refreshKey by remember(item.endpoint) { mutableStateOf(0) }
+
     Column(modifier = modifier.fillMaxSize()) {
         Row(
             modifier = Modifier
@@ -149,13 +156,31 @@ private fun RemoteDetailScreen(
             TextButton(onClick = onBack) { Text("‹ Back") }
             Text(item.screenName, style = androidx.compose.material3.MaterialTheme.typography.titleLarge)
         }
-        RemoteScreen(item = item, modifier = Modifier.fillMaxSize())
+        Box(modifier = Modifier.fillMaxSize()) {
+            RemoteScreen(
+                item = item,
+                refreshKey = refreshKey,
+                modifier = Modifier.fillMaxSize(),
+            )
+            FloatingActionButton(
+                onClick = { refreshKey++ },
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(20.dp),
+            ) {
+                Text("↻", fontSize = 20.sp, fontWeight = FontWeight.SemiBold)
+            }
+        }
     }
 }
 
 @Composable
 @SuppressLint("RestrictedApi")
-private fun RemoteScreen(item: RemoteCatalogueItem, modifier: Modifier) {
+private fun RemoteScreen(
+    item: RemoteCatalogueItem,
+    refreshKey: Int,
+    modifier: Modifier,
+) {
     var uiPayload by remember { mutableStateOf<ByteArray?>(null) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     val displayMetrics = LocalContext.current.resources.displayMetrics
@@ -163,7 +188,9 @@ private fun RemoteScreen(item: RemoteCatalogueItem, modifier: Modifier) {
     val heightPixels = displayMetrics.heightPixels
     val density = LocalDensity.current.density
 
-    LaunchedEffect(item.endpoint, widthPixels, heightPixels, density) {
+    LaunchedEffect(item.endpoint, widthPixels, heightPixels, density, refreshKey) {
+        uiPayload = null
+        errorMessage = null
         withContext(Dispatchers.IO) {
             try {
                 val client = HttpClient(CIO)
