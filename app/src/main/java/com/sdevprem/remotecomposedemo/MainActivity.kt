@@ -3,6 +3,7 @@ package com.sdevprem.remotecomposedemo
 import android.annotation.SuppressLint
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -26,6 +27,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.remote.core.Limits.ENABLE_IMAGE_URLS
+import androidx.compose.remote.core.Limits.ENABLE_RUN_ACTION_HOST_ACTIONS
 import androidx.compose.remote.player.view.RemoteComposePlayer
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -67,6 +69,7 @@ private val catalogueItems = listOf(
     RemoteCatalogueItem(endpoint = "/festive", screenName = "Festive"),
     RemoteCatalogueItem(endpoint = "/clock", screenName = "Clock"),
     RemoteCatalogueItem(endpoint = "/counter", screenName = "Counter"),
+    RemoteCatalogueItem(endpoint = "/expandable-card", screenName = "Expandable card"),
 )
 
 class MainActivity : ComponentActivity() {
@@ -207,6 +210,7 @@ private fun RemoteScreen(
     }
 
     Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        val ctx = LocalContext.current
         when {
             errorMessage != null -> Text("Error fetching UI: $errorMessage")
             uiPayload == null -> CircularProgressIndicator()
@@ -216,6 +220,11 @@ private fun RemoteScreen(
                     modifier = Modifier.fillMaxSize(),
                     onAction = { id, metadata ->
                         Log.d("tag...tag", "Action (ID: $id, Data: $metadata)")
+                        Toast.makeText(
+                            ctx,
+                            metadata?.takeIf { it.isNotBlank() } ?: "Banner tapped (ID: $id)",
+                            Toast.LENGTH_SHORT,
+                        ).show()
                     }
                 )
             }
@@ -235,6 +244,7 @@ fun RemoteDocumentView(
             modifier = modifier,
             factory = { ctx ->
                 ENABLE_IMAGE_URLS = true
+                ENABLE_RUN_ACTION_HOST_ACTIONS = true
                 RemoteComposePlayer(ctx).apply {
                     setBitmapLoader { url ->
                         var imageBytes = ByteArray(0)
@@ -252,10 +262,10 @@ fun RemoteDocumentView(
 
                         ByteArrayInputStream(imageBytes)
                     }
+                    setDocument(documentBytes)
                     addIdActionListener { id, metadata ->
                         onAction(id, metadata)
                     }
-                    setDocument(documentBytes)
 
                 }
             }
