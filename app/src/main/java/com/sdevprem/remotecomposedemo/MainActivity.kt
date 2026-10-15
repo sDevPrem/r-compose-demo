@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.clickable
@@ -23,6 +24,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -33,6 +35,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -114,7 +117,7 @@ private fun CatalogueScreen(
         contentPadding = PaddingValues(16.dp),
     ) {
         item {
-            Text("Remote Compose catalogue", style = androidx.compose.material3.MaterialTheme.typography.headlineSmall)
+            Text("Remote Compose catalogue", style = MaterialTheme.typography.headlineSmall)
             Spacer(Modifier.height(16.dp))
         }
         items(items, key = { it.endpoint }) { item ->
@@ -130,9 +133,9 @@ private fun CatalogueScreen(
                         .padding(20.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text(item.screenName, style = androidx.compose.material3.MaterialTheme.typography.titleLarge)
+                    Text(item.screenName, style = MaterialTheme.typography.titleLarge)
                     Spacer(Modifier.weight(1f))
-                    Text("›", style = androidx.compose.material3.MaterialTheme.typography.headlineMedium)
+                    Text("›", style = MaterialTheme.typography.headlineMedium)
                 }
             }
         }
@@ -146,7 +149,8 @@ private fun RemoteDetailScreen(
     modifier: Modifier = Modifier,
     onBack: () -> Unit,
 ) {
-    var refreshKey by remember(item.endpoint) { mutableStateOf(0) }
+    BackHandler(onBack = onBack)
+    var refreshKey by remember(item.endpoint) { mutableIntStateOf(0) }
 
     Column(modifier = modifier.fillMaxSize()) {
         Row(
@@ -156,8 +160,8 @@ private fun RemoteDetailScreen(
                 .padding(horizontal = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            TextButton(onClick = onBack) { Text("‹ Back") }
-            Text(item.screenName, style = androidx.compose.material3.MaterialTheme.typography.titleLarge)
+            TextButton(onClick = onBack) { Text("‹", fontSize = 24.sp) }
+            Text(item.screenName, style = MaterialTheme.typography.titleMedium)
         }
         Box(modifier = Modifier.fillMaxSize()) {
             RemoteScreen(
