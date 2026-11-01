@@ -67,6 +67,7 @@ data class RemoteCatalogueItem(
 
 private val catalogueItems = listOf(
     RemoteCatalogueItem(endpoint = "/festive", screenName = "Festive"),
+    RemoteCatalogueItem(endpoint = "/brewcraft", screenName = "BrewCraft"),
     RemoteCatalogueItem(endpoint = "/clock", screenName = "Clock"),
     RemoteCatalogueItem(endpoint = "/counter", screenName = "Counter"),
     RemoteCatalogueItem(endpoint = "/expandable-card", screenName = "Expandable card"),
